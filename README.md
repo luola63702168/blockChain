@@ -2,13 +2,16 @@
 - 主要环境：
     - 语言：go 1.13.5  
     - 数据库：bolt
+    
 ### 项目构成
-   - 实现区块，及区块链基本结构：
+   - hash算法：sha256
+   - 实现区块，及区块链基本结构
    - 矿工工作量难度设置
    - 矿工工作量证明
+   - 矿工奖励机制
    - 实现交易稳定可信
    - 实现命令行调用该系统
-    
+
 ### 命令参考
 - createChain --address ADDRESS "create a block Chain"
 - printChain			  "print all blocks"
