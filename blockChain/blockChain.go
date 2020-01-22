@@ -110,7 +110,7 @@ func (bc *BlockChain) AddBlock(txs []*Transaction) {
 	CheckErr("bc.db.Update", err1)
 }
 
-// 迭代器，就是一个对象，它里面包含了一个游标，一直向前(后)移动，完成整个容器的遍历
+// 迭代器
 type BlockChainIterator struct {
 	currHash []byte // 游标，总指向当前的hash
 	db       *bolt.DB
