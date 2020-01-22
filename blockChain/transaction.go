@@ -11,7 +11,6 @@ import (
 const reward  = 12.5
 
 type Transaction struct {
-	// 交易id不应该存在交易结构中的，它应该被统一管理，依次分配
 	TXID []byte // 交易id
 	TXInputs []TXInput //交易输入
 	TXOutputs []TXOutput //交易输入
@@ -64,9 +63,7 @@ func NewTransaction(from,to string, amount float64,bc *BlockChain) *Transaction 
 	var outputs  []TXOutput
 
 	//output-->input
-	// 遍历有效utxo合集
 	for txId,outputIndex := range vaidUTXOs{
-		// 遍历所有引用的utxo的索引，每一个索引需要创建一个input
 		for _,index :=range outputIndex{
 			input:=TXInput{
 				TXID:      []byte(txId),
@@ -105,7 +102,6 @@ func NewTransaction(from,to string, amount float64,bc *BlockChain) *Transaction 
 }
 
 // 创建NewCoinBaseTx(只有收款人，没有付款人，是矿工的奖励交易)
-// address：矿工地址 data ：一个区块链的创世块的交易信息，这个交易信息没有输入，只有输出所以不需要解锁脚本，可任添信息
 func NewCoinBaseTx(address string,data string) *Transaction {
 	if data == ""{
 		data = fmt.Sprintf("reward to %s %f btc",address,reward)

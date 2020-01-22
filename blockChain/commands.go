@@ -11,7 +11,6 @@ func (cli *CLI) PrintChain() {
 	it := bc.NewIterator()
 	defer bc.db.Close()
 	for {
-		// 取出最后一个block，并将游标指向前一个区块
 		block := it.Next()
 		fmt.Printf("Version%d\n", block.Version)
 		fmt.Printf("PreBlockHash:%x\n", block.PreBlockHash)
@@ -31,7 +30,6 @@ func (cli *CLI) PrintChain() {
 // 命令行，创建区块链（初始化）
 func (cli *CLI) CreateChain(address string) {
 	bc := InitBlockChain(address)
-	// 命令执行完毕，关闭数据库连接
 	defer bc.db.Close()
 	fmt.Println("Create block successfully")
 }

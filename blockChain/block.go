@@ -23,8 +23,7 @@ type Block struct {
 
 // block序列化
 func (block *Block) Serialize() []byte {
-	var buffer bytes.Buffer // 一个可读可写的换冲区
-	//NewEncoder返回一个将编码后数据写入w的*Encoder。
+	var buffer bytes.Buffer
 	encoder := gob.NewEncoder(&buffer)
 	err := encoder.Encode(block)
 	CheckErr("Serialize: ", err)
@@ -37,8 +36,7 @@ func Deserialize(data []byte) *Block {
 		return nil
 	}
 	var block Block
-	//函数返回一个从r读取数据的*Decoder，如果r不满足io.ByteReader接口，则会包装r为bufio.Reader。
-	decoder := gob.NewDecoder(bytes.NewReader(data)) // NewReader returns a new Reader reading from b.
+	decoder := gob.NewDecoder(bytes.NewReader(data))
 	err := decoder.Decode(&block)
 	CheckErr("Deserialize", err)
 	return &block
@@ -78,7 +76,6 @@ func (block *Block)HashTransactions() []byte {
 		//[]bytes
 		txHashes=append(txHashes,tx.TXID)
 	}
-	// 二维切片拼接，生成一纬切片
 	data :=bytes.Join(txHashes,[]byte{})
 	hash:=sha256.Sum256(data)
 	return hash[:]
