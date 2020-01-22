@@ -1,0 +1,85 @@
+package main
+
+import (
+	"bytes"
+	"crypto/sha256"
+	"encoding/gob"
+	"time"
+)
+
+type Block struct {
+	Version      int64
+	PreBlockHash []byte // 前区块哈希值
+	MerKelRoot   []byte // 梅克尔根
+	TimeStamp    int64  // 时间戳
+	Bits         int64  // 难度值
+	Nonce        int64  //随机值
+	//Data         []byte //交易信息
+	Transactions []*Transaction //交易信息
+
+	// 区块中是不存hash值的，是节点接收区块后独立计算并存储本地的
+	Hash []byte // 当前区块的hash值
+}
+
+// block序列化
+func (block *Block) Serialize() []byte {
+	var buffer bytes.Buffer // 一个可读可写的换冲区
+	//NewEncoder返回一个将编码后数据写入w的*Encoder。
+	encoder := gob.NewEncoder(&buffer)
+	err := encoder.Encode(block)
+	CheckErr("Serialize: ", err)
+	return buffer.Bytes()
+}
+
+// 自由函数，反序列化
+func Deserialize(data []byte) *Block {
+	if len(data) == 0 {
+		return nil
+	}
+	var block Block
+	//函数返回一个从r读取数据的*Decoder，如果r不满足io.ByteReader接口，则会包装r为bufio.Reader。
+	decoder := gob.NewDecoder(bytes.NewReader(data)) // NewReader returns a new Reader reading from b.
+	err := decoder.Decode(&block)
+	CheckErr("Deserialize", err)
+	return &block
+}
+
+// Create block
+func NewBlock(txs []*Transaction, preBlockHash []byte, ) *Block {
+	var block Block
+	block = Block{
+		Version:      1,
+		PreBlockHash: preBlockHash,
+		MerKelRoot:   []byte{},
+		TimeStamp:    time.Now().Unix(),
+		Bits:         targetBits,
+		Nonce:        0,
+		Transactions: txs,
+	}
+	pow := NewProofOfWork(&block)
+	nonce, hash := pow.Run()
+	block.Nonce = nonce
+	block.Hash = hash
+	return &block
+}
+
+// Create a first block
+func NewGenesisBlock(coinBaseTx *Transaction) *Block {
+	return NewBlock([]*Transaction{coinBaseTx}, []byte{})
+}
+
+
+// 生成交易信息哈希值，生成粗糙的默克尔树
+func (block *Block)HashTransactions() []byte {
+
+	var txHashes [][]byte
+	txs:=block.Transactions
+	for _,tx:=range txs{
+		//[]bytes
+		txHashes=append(txHashes,tx.TXID)
+	}
+	// 二维切片拼接，生成一纬切片
+	data :=bytes.Join(txHashes,[]byte{})
+	hash:=sha256.Sum256(data)
+	return hash[:]
+}

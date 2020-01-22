@@ -1,0 +1,117 @@
+package main
+
+import (
+	"flag"
+	"fmt"
+	"os"
+)
+
+type CLI struct {
+}
+
+const usage = `
+	createChain --address ADDRESS "create a block Chain"
+	printChain			  "print all blocks"
+	getBalance --address ADDRESS   "get balance of the address"
+	send --from FROM --to TO --amount AMOUNT   "send coin from FROM to TO"
+	`
+
+const PrintChainCmdString = "printChain"
+const CreateChainCmdString = "createChain"
+const GetBalanceCmdString = "getBalance"
+const SendCmdString = "send"
+
+// 提示信息打印
+func (cli *CLI) printUsage() {
+	fmt.Println("invalid input")
+	fmt.Println(usage)
+	os.Exit(1)
+}
+
+// 参数检查
+func (cli *CLI) parameterCheck() {
+	if len(os.Args) < 2 {
+		cli.printUsage()
+	}
+}
+
+// 命令行参数接收
+func (cli *CLI) Run() {
+	cli.parameterCheck()
+	// 添加新命令（Flag ：命令标记）
+	createChainCmd := flag.NewFlagSet(CreateChainCmdString, flag.ExitOnError)
+	getBalanceCmd := flag.NewFlagSet(GetBalanceCmdString, flag.ExitOnError)
+	printChainCmd := flag.NewFlagSet(PrintChainCmdString, flag.ExitOnError)
+	sendCmd := flag.NewFlagSet(SendCmdString, flag.ExitOnError)
+
+	// String用指定的名称、默认值、使用信息注册一个string类型flag。返回一个保存了该flag的值的指针
+	//NewFlagSet命令的data参数(-data 和 --data都可以)对应的信息都会被解析为string的形式返给addBlockCmdPara(如果跟的是"内容"，会忽略 "")。（""为默认，"block tr...为这个参数的备注信息"）
+	//错误示范：
+	//$ ./block.exe addBlock -dat A to B 1 Btc
+	//flag provided but not defined: -data
+	//Usage of addBlock:
+	//-data string
+	//block transaction info!
+
+	// 创建区块链相关参数
+	createChainCmdPara := createChainCmd.String("address", "", "address info! ")
+	// 余额查询相关参数
+	getBalanceCmdPara := getBalanceCmd.String("address", "", "address info! ")
+	// send交易相关参数
+	fromCmdPara := sendCmd.String("from", "", "from address info! ")
+	toCmdPara := sendCmd.String("to", "", "to address info! ")
+	amountCmdPara := sendCmd.Float64("amount", 0, "amount info! ")
+
+	switch os.Args[1] {
+
+	// 命令行 产生交易
+	case SendCmdString:
+		err := sendCmd.Parse(os.Args[2:])
+		CheckErr("cli *CLI Run()2", err)
+		// 检测到底有没有解析，有的话会返回true
+		if sendCmd.Parsed() {
+			if *fromCmdPara == "" || *toCmdPara == "" || *amountCmdPara == 0 {
+				fmt.Println("err: from address should not be empty")
+				cli.printUsage()
+			}
+			cli.Send(*fromCmdPara, *toCmdPara, *amountCmdPara)
+		}
+
+	// 创建区块链（初始化）
+	case CreateChainCmdString:
+		err := createChainCmd.Parse(os.Args[2:])
+		CheckErr("cli *CLI Run()2", err)
+		// 检测到底有没有解析，有的话会返回true
+		if createChainCmd.Parsed() {
+			if *createChainCmdPara == "" {
+				fmt.Println("err: send cmd parameters invalid")
+				cli.printUsage()
+			}
+			cli.CreateChain(*createChainCmdPara)
+		}
+
+	// 命令行遍历区块，打印数据
+	case PrintChainCmdString:
+		//打印输出
+		err := printChainCmd.Parse(os.Args[2:])
+		CheckErr("cli *CLI Run()3", err)
+		if printChainCmd.Parsed() {
+			cli.PrintChain()
+		}
+
+	// 查询用户余额
+	case GetBalanceCmdString:
+		err := getBalanceCmd.Parse(os.Args[2:])
+		CheckErr("cli *CLI Run()4", err)
+		// 检测到底有没有解析，有的话会返回true
+		if getBalanceCmd.Parsed() {
+			if *getBalanceCmdPara == "" {
+				fmt.Println("err: getBalance data should not be empty")
+				cli.printUsage()
+			}
+			cli.GetBalance(*getBalanceCmdPara)
+		}
+	default:
+		cli.printUsage()
+	}
+}
